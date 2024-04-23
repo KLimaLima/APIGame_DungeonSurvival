@@ -24,6 +24,8 @@ const client = new MongoClient(uri, {
   }
 });
 
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -35,5 +37,16 @@ async function run() {
     // Ensures that the client will close when you finish/error
     await client.close();
   }
+
+  app.get('/Almanac', async (req, res) => {
+
+
+
+    let enemies = await client.db('Almanac').collection('enemy_info').find().toArray();
+
+    res.send(enemies);
+
+})
+  
 }
 run().catch(console.dir);
