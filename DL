@@ -1,0 +1,33 @@
+const player = {
+  name: "...",
+  health: 10,
+  attack: 10,
+  magic: 5,
+  inventory: 0,
+};
+
+const enemy = {
+  name: "...",
+  health: 6,
+  nextMove: "",
+};
+
+function updateStats() {
+  document.getElementById("player-name").textContent = player.name;
+  document.getElementById("player-health").textContent = player.health;
+  document.getElementById("player-attack").textContent = player.attack;
+  document.getElementById("player-magic").textContent = player.magic;
+  document.getElementById("player-inventory").textContent = player.inventory;
+  document.getElementById("enemy-name").textContent = enemy.name;
+  document.getElementById("enemy-health").textContent = enemy.health;
+  document.getElementById("enemy-next-move").textContent = enemy.nextMove;
+}
+
+document.getElementById("action-button").addEventListener("click", () => {
+  const action = document.getElementById("action-input").value;
+ 
+  document.getElementById("action-input").value = "";
+  document.getElementById("action-input").focus();
+});
+
+updateStats();
