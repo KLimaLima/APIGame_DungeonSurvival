@@ -10,6 +10,7 @@ module.exports=InventoryRouter;
 // app.use(express.urlencoded());
 // app.use(express.static('public'));
 
+
 // GET the players
 InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
   const{playerId}=req.params;
@@ -23,6 +24,23 @@ InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
   }
   res.send(player.inventory);
 });
+
+//POST an item to a player's inventory
+InventoryRouter.post('/api/players/:playerId/inventory', async (req, res) => {
+  const { playerId } = req.params;
+  if (!ObjectId.isValid(playerId)) {
+    return res.status(400).send('Invalid ID format');
+  }
+  const player = await client.db('players').collection('player').findOne({ _id: new ObjectId(playerId) });
+  if (!player) {
+    return res.status(404).send('Player not found');
+  }
+  const item = new Inventory(req.body);
+  player.inventory.push(item);
+  await player.save();
+  res.send(item);
+});
+
 
 // DELETE an item from a player's inventory
 InventoryRouter.delete('/api/players/:playerId/inventory/:itemId', async (req, res) => {
