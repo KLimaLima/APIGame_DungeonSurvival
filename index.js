@@ -5,9 +5,9 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-
+let client = require('./database.js')
 app.get('/leaderboard', async(req, res) => {
-    let LatestLB = await client.db("benr24231").collection("datacollection")
+    let LatestLB = await client.db("ds_db").collection("leaderboard")
         .find()
         .sort({ score: -1 }) // Sort by score in descending order
         .toArray();
@@ -15,7 +15,7 @@ app.get('/leaderboard', async(req, res) => {
     res.json(LatestLB);
 });
 app.post('/register',async(req,res)=>{
-    let Exists= await client.db("benr24231").collection("datacollection").findOne({
+    let Exists= await client.db("ds_db").collection("register").findOne({
         player:req.body.player
     });
     if(Exists){
@@ -23,7 +23,7 @@ app.post('/register',async(req,res)=>{
     }
     else{
         const hash = bcrypt.hashSync(req.body.password, 10);
-        let result= await client.db("benr24231").collection("datacollection").insertOne({
+        let result= await client.db("ds_db").collection("register").insertOne({
             player:req.body.player,
             password:hash
         });
@@ -31,7 +31,7 @@ app.post('/register',async(req,res)=>{
     res.send({message:"Account created successfully, please reme,ber your player id"});
 })
 app.post('/forgetuserID', async(req, res) => {
-    let result = await client.db("benr24231").collection("datacollection").findOne({
+    let result = await client.db("ds_db").collection("user").findOne({
         player: req.body.player,
         password: req.body.password
     })
