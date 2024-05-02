@@ -62,8 +62,4 @@ app.post('/forgetuserID', async(req, res) => {
 app.listen(port, () => {
     console.log(`Leaderboard app listening on port ${port}`);
 });
-});
 
-app.listen(port, () => {
-    console.log(`Leaderboard app listening on port ${port}`);
-});
