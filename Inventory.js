@@ -4,8 +4,6 @@ module.exports=InventoryRouter;
 
 let client = require(`./database.js`)
 
-//test
-
 // GET the players
 InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
   const{playerId}=req.params;
