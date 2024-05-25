@@ -13,7 +13,7 @@ AlmanacRouter.get('/almanac', async (req, res) => {
 })
 
 
-AlmanacRouter.get ("/start", async (req, res) => {
+AlmanacRouter.get ("/randomize", async (req, res) => {
 
     let result = await client.db('ds_db').collection('almanac').aggregate([{$sample:{size:1}}]).toArray();
     
