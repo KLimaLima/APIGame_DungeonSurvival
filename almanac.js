@@ -4,9 +4,19 @@ module.exports = AlmanacRouter;
 
 let client = require(`./database.js`)
 
-AlmanacRouter.get('/Almanac', async (req, res) => {
+AlmanacRouter.get('/almanac', async (req, res) => {
 
     let enemies = await client.db('ds_db').collection('almanac').find().toArray();
 
     res.send(enemies);
+
 })
+
+
+AlmanacRouter.get ("/start", async (req, res) => {
+
+    let result = await client.db('ds_db').collection('almanac').aggregate([{$sample:{size:1}}]).toArray();
+    
+    res.send(result)
+    
+    })
