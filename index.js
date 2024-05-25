@@ -4,6 +4,14 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json())
 
+let client = require(`./database`)
+
+const almanacRoute = require(`./almanic`)
+const inventoryRoute = require(`./inventory`)
+
+app.use(almanacRoute)
+app.use(inventoryRoute)
+
 app.get('/', (req, res) => {
    res.send('Hello World!')
 })
@@ -12,17 +20,7 @@ app.listen(port, () => {
    console.log(`Example app listening on port ${port}`)
 })
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://ds_dev:ds_devgroupb@clusterds.imsywsc.mongodb.net/?retryWrites=true&w=majority&appName=ClusterDS";
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
 
 async function run() {
   try {
@@ -33,7 +31,7 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+   //  await client.close();
   }
 }
 run().catch(console.dir);
