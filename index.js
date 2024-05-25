@@ -1,21 +1,22 @@
 const bcrypt = require('bcrypt')
 const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
+const leaderboardRouter=express.Router();
+module.exports=leaderboardRouter;
 
-app.use(express.json());
 
-let client = require('./database.js')
-app.get('/leaderboard', async(req, res) => {
-    let LatestLB = await client.db("ds_db").collection("leaderboard")
+//app.use(express.json());
+
+
+leaderboardRouter.get('/leaderboard', async(req, res) => {
+    let LatestLB = await client.db("da_db").collection("account")
         .find()
         .sort({ score: -1 }) // Sort by score in descending order
         .toArray();
 
     res.json(LatestLB);
 });
-app.post('/register',async(req,res)=>{
-    let Exists= await client.db("ds_db").collection("register").findOne({
+leaderboardRouter.post('/register',async(req,res)=>{
+    let Exists= await client.db("ds_db").collection("account").findOne({
         player:req.body.player
     });
     if(Exists){
@@ -23,15 +24,27 @@ app.post('/register',async(req,res)=>{
     }
     else{
         const hash = bcrypt.hashSync(req.body.password, 10);
-        let result= await client.db("ds_db").collection("register").insertOne({
+        let result= await client.db("ds_db").collection("account").insertOne({
             player:req.body.player,
             password:hash
         });
+        let statPlayer= await client.db("ds_db").collection("stat").insertOne({
+            playerID:req.body.player,
+            inventory:0,
+            attacl_action:10,
+            current_enemy:"wolf",
+            current_score:32,
+            enemy_health:10,
+            enemy_next_move:"bite",
+            evade_acrion:5,
+            heath_pts:10
+      
+       })
     }
     res.send({message:"Account created successfully, please reme,ber your player id"});
 })
-app.post('/forgetuserID', async(req, res) => {
-    let result = await client.db("ds_db").collection("user").findOne({
+leaderboardRouter.post('/forgetuserID', async(req, res) => {
+    let result = await client.db("ds_db").collection("account").findOne({
         player: req.body.player,
         password: req.body.password
     })
@@ -58,8 +71,3 @@ app.post('/forgetuserID', async(req, res) => {
     }
     
 });
-
-app.listen(port, () => {
-    console.log(`Leaderboard app listening on port ${port}`);
-});
-
