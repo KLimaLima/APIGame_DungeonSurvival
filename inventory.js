@@ -67,20 +67,19 @@ res.status(200).send('Item added to inventory');
 // DELETE an item from a player's inventory
 InventoryRouter.delete('/api/players/:playerId/inventory/:itemId', async (req, res) => {
   const { playerId, itemId } = req.params;
-  if (!ObjectId.isValid(playerId) || !ObjectId.isValid(itemId)) {
+  if (!playerId || !itemId) {
     return res.status(400).send('Invalid ID format');
   }
-  const player = await client.db('players').collection('player').findOne({ _id: playerId });
-  if (!player) {
-    return res.status(404).send('Player not found');
-  }
-  const item = await Inventory.findOne({ _id: ObjectId(itemId) });
+  const player = await getPlayerById(playerId);
+  const item = await collection('inventory').findOne({ playerId });
   if (!item) {
     return res.status(404).send('Item not found');
   }
+  else{
   player.inventory.remove(item);
   await player.save();
   res.send('Item removed from inventory');
+  }
 });
 
 //API start the game
