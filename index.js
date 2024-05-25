@@ -7,7 +7,7 @@ app.use(express.json())
 let client = require(`./database`)
 
 const almanacRoute = require(`./almanic`)
-const inventoryRoute = require(`./inventory`)
+const inventoryRoute = require(`./InvenTory`)
 
 app.use(almanacRoute)
 app.use(inventoryRoute)
