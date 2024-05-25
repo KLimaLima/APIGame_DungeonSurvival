@@ -1,6 +1,8 @@
 const express=require('express');
 const InventoryRouter=express.Router();
 module.exports=InventoryRouter;
+const client = require('./database')
+const db = client.db('ds_db');
 
 
 // app.use(express.json());
@@ -9,36 +11,28 @@ module.exports=InventoryRouter;
 
 //function to determine whether the player exists
 const getPlayerById = async (playerId) => {
-  if (!ObjectId.isValid(playerId)) {
+  if (!playerId) {
       throw new Error("Invalid ID format");
   }
 
-  const client = await MongoClient.connect(url);
-  const db = client.db('game');
-  const player = await db.collection('players').findOne({ _id: (playerId) });
+  // const client = require('./database')
+  // const db = client.db('ds_db');
+  const player = await db.collection('stats').findOne({playerId});
 
   if (!player) {
       throw new Error("Player not found");
   }
 
   return player;
-};
+}
 
-let client = require(`./database.js`)
+
 
 // GET the players
 InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
   try{
   const{playerId}=req.params;
-  // if (!ObjectId.isValid(playerId) ) {
-  //   return res.status(400).send('Invalid ID format');
-  // }
-
-  // const player = await client.db('players').collection('player').findOne({ _id: new ObjectId(playerId) });
-  // if (!player) {
-  //   return res.status(404).send('Player not found');
-  // }
-  // res.send(player.inventory);
+ 
     const player = await getPlayerById(playerId);
     res.status(200).json(player);
 } catch (error) {
@@ -48,14 +42,6 @@ InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
 
 //POST an item to a player's inventory
 InventoryRouter.post('/api/players/:playerId/inventory', async (req, res) => {
-  const { playerId } = req.params;
-  // if (!ObjectId.isValid(playerId)) {
-  //   return res.status(400).send('Invalid ID format');
-  // }
-  // const player = await client.db('players').collection('player').findOne({ _id: new ObjectId(playerId) });
-  // if (!player) {
-  //   return res.status(404).send('Player not found');
-  // }
   try{
     const{playerId}=req.params;
     const player = await getPlayerById(playerId);
@@ -63,9 +49,9 @@ InventoryRouter.post('/api/players/:playerId/inventory', async (req, res) => {
 } catch (error) {
     res.status(400).send(error.message);
 }
-const item=req.body;
-const ItemAdd = await client.db('players').collection('players').updateOne(
-  { _id: playerId },
+const item=req.body.item;
+const ItemAdd = await db.collection('tests').updateOne(
+  {playerId:req.params},
   { $push: { inventory: item } }
 );
 
@@ -96,3 +82,21 @@ InventoryRouter.delete('/api/players/:playerId/inventory/:itemId', async (req, r
   await player.save();
   res.send('Item removed from inventory');
 });
+
+//API start the game
+
+
+
+
+//function return the randomized almanic
+
+// function randomAlmanic(){
+
+// functioon attack
+
+
+//function health
+
+//randomized attack 
+
+
