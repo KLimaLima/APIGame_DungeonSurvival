@@ -28,20 +28,31 @@ leaderboardRouter.post('/register',async(req,res)=>{
             player:req.body.player,
             password:hash
         });
+        let document = result1[0]; // get the first document from the result array
+        let skills = document.skill;
+
+        // Generate a random index
+        let randomIndex = Math.floor(Math.random() * skills.length);
+
+        // Get a random skill
+        let randomSkill = skills[randomIndex];
+
+
+        
+
         let statPlayer= await client.db("ds_db").collection("stat").insertOne({
             playerID:req.body.player,
             inventory:0,
-            attacl_action:10,
-            current_enemy:"wolf",
-            current_score:32,
-            enemy_health:10,
-            enemy_next_move:"bite",
+            attack_action:10,
+            current_enemy:document.enemy,
+            current_score:0,
+            enemy_health:document.base_health,
+            enemy_next_move:randomSkill.attack_name,
             evade_acrion:5,
-            heath_pts:10
+            heath_pts:10
       
        })
-    }
-    res.send({message:"Account created successfully, please reme,ber your player id"});
+    res.send({message:"Account created successfully, please remember your player id"});
 })
 leaderboardRouter.post('/forgetuserID', async(req, res) => {
     let result = await client.db("ds_db").collection("account").findOne({
