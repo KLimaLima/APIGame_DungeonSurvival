@@ -17,7 +17,8 @@ const getPlayerById = async (playerId) => {
 
   // const client = require('./database')
   // const db = client.db('ds_db');
-  const player = await db.collection('stats').findOne({playerId});
+  const player = await db.collection('test1').findOne({playerId});
+
 
   if (!player) {
       throw new Error("Player not found");
@@ -30,57 +31,117 @@ const getPlayerById = async (playerId) => {
 
 // GET the players
 InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
-  try{
   const{playerId}=req.params;
+  const player = await getPlayerById(playerId);
+  if(player){
+  const pipeline = [
+    {
+      '$match': {
+        'playerId': playerId
+      }
+    }, 
+    {
+      '$project': {
+        'inventory': 1
+      }
+    }
+  ];
+
+  const playerInventory = await db.collection('test1').aggregate(pipeline).toArray();
  
-    const player = await getPlayerById(playerId);
-    res.status(200).json(player);
-} catch (error) {
-    res.status(400).send(error.message);
+   
+    res.status(200).json(playerInventory);
+} 
+else{
+  res.status(400).send("Error")
 }
 });
 
 //POST an item to a player's inventory
 InventoryRouter.post('/api/players/:playerId/inventory', async (req, res) => {
-  try{
-    const{playerId}=req.params;
+const { playerId } = req.params;
+const item = req.body.item;
+
+  try {
     const player = await getPlayerById(playerId);
-    res.status(200).json(player);
-} catch (error) {
+
+    const ItemAdd = await db.collection('test1').updateOne(
+      { playerId: playerId },
+      { $push: {inventory: 
+        {item:item,
+        attack: req.body.attack,
+        defense: req.body.defense
+         } }
+        }
+    );
+
+    if (ItemAdd.modifiedCount === 0) {
+      throw new Error("Couldn't add item to inventory");
+    }
+
+    res.status(200).json({ player, message: 'Item added to inventory' });
+  } catch (error) {
     res.status(400).send(error.message);
-}
-const item=req.body.item;
-const ItemAdd = await db.collection('tests').updateOne(
-  {playerId:req.params},
-  { $push: { inventory: item } }
-);
-
-if (ItemAdd.modifiedCount === 0) {
-  throw new Error("Couldn't add item to inventory");
-}
-
-res.status(200).send('Item added to inventory');
-
+  }
 });
+
+// //add item into the inventory
+// async function addItemToPlayerInventory(playerId, item, attack, defense) {
+//   try {
+//     const player = await getPlayerById(playerId);
+
+//     const ItemAdd = await db.collection('test1').updateOne(
+//       { playerId: playerId },
+//       { $push: {inventory: 
+//         {item: item,
+//         attack: attack,
+//         defense: defense
+//          } }
+//         }
+//     );
+
+//     if (ItemAdd.modifiedCount === 0) {
+//       throw new Error("Couldn't add item to inventory");
+//     }
+
+//     return true;
+//   } catch (error) {
+//     console.error(error);
+//     return false;
+//   }
+// }
+
 
 
 // DELETE an item from a player's inventory
-InventoryRouter.delete('/api/players/:playerId/inventory/:itemId', async (req, res) => {
-  const { playerId, itemId } = req.params;
-  if (!playerId || !itemId) {
-    return res.status(400).send('Invalid ID format');
-  }
-  const player = await getPlayerById(playerId);
-  const item = await collection('inventory').findOne({ playerId });
-  if (!item) {
-    return res.status(404).send('Item not found');
-  }
-  else{
-  player.inventory.remove(item);
-  await player.save();
-  res.send('Item removed from inventory');
+InventoryRouter.delete('/api/players/:playerId/inventory/:item', async (req, res) => {
+  const { playerId, item } = req.params;
+
+  try {
+    const player = await getPlayerById(playerId);
+    if (!player) {
+      return res.status(404).send('Player not found');
+    }
+
+
+    const result = await db.collection('test1').updateOne(
+      { playerId: playerId },
+      { $pull: { inventory: { item: item } } }
+    );
+
+    if (result.modifiedCount === 0) {
+      console.log('No modifications made by updateOne'); // Debugging line
+      return res.status(404).send('Item not found');
+    }
+
+    res.send('Item removed from inventory');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('An error occurred');
   }
 });
+
+
 
 //API start the game
 
