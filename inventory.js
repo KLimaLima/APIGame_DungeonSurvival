@@ -68,11 +68,8 @@ const item = req.body.item;
     const ItemAdd = await db.collection('test1').updateOne(
       { playerId: playerId },
       { $push: {inventory: 
-        {item:item,
-        attack: req.body.attack,
-        defense: req.body.defense
-         } }
-        }
+        {item:item,} }
+      }
     );
 
     if (ItemAdd.modifiedCount === 0) {
@@ -110,6 +107,100 @@ const item = req.body.item;
 //     return false;
 //   }
 // }
+
+InventoryRouter.patch('/usePotion', async (req, res) => {
+  const { playerId, item } = req.body;
+
+  // Find the player's document
+  const player = await getPlayerById(playerId);
+
+  if (!player) {
+    return res.status(404).send('Player not found');
+  }
+
+  // Find the selected potion in the inventory
+  const potion = player.inventory.find(p => p.item === item);
+  if (!potion) {
+    return res.status(404).send('Potion not found');
+  }
+  const newAttackAction = Math.min(player.attack_action + potion.attack_action, 10);
+  const newHealthPts = Math.min(player.health_pts + potion.health_pts, 10);
+
+console.log('player:', player);
+console.log('newAttackAction:', newAttackAction);
+console.log('newHealthPts:', newHealthPts);
+
+  // Update the attack_action and health_pts field
+  let updatedPlayer = null;
+  if(player.attack_action<=10 && player.health_pts<=10){  
+    updatedPlayer = await db.collection("test1").findOneAndUpdate(
+      { playerId:playerId },
+      {
+        $set: {
+          attack_action: newAttackAction,
+          health_pts: newHealthPts
+        },
+        $pull: { inventory: { item } }  // remove the used potion from inventory
+      },
+      { returnOriginal: false }  // return the updated document
+    );
+  }
+  else if(player.attack_action<10 && player.health_pts>=10)
+  {
+    updatedPlayer = await db.collection("test1").findOneAndUpdate(
+      { playerId:playerId },
+      {
+        $set: {
+          attack_action: newAttackAction,
+        },
+        $pull: { inventory: { item } }  // remove the used potion from inventory
+      },
+      { returnOriginal: false }  // return the updated document
+    );
+  }
+  else if(player.attack_action>=10 && player.health_pts<10)
+  {
+    updatedPlayer = await db.collection("test1").findOneAndUpdate(
+      { playerId:playerId },
+      {
+        $set: {
+          health_pts: newHealthPts
+        },
+        $pull: { inventory: { item } }  // remove the used potion from inventory
+      },
+      { returnOriginal: false }  // return the updated document
+    );
+  }
+  else if(player.attack_action>=10 && player.health_pts>=10)
+  {
+    return res.status(400).send("The attack and health is full");
+  }
+
+  if (!updatedPlayer?.value) {
+    return res.status(500).send('Error updating player');
+  }
+
+  res.send(updatedPlayer.value);
+});
+
+
+//   {
+//     '$match': {
+//       'playerId': 'new'
+//     }
+//   }, {
+//     '$unwind': {
+//       'path': '$inventory'
+//     }
+//   }, {
+//     '$lookup': {
+//       'from': 'potion', 
+//       'localField': 'inventory.item', 
+//       'foreignField': 'item', 
+//       'as': 'ndata'
+//     }
+//   }
+// ]
 
 
 
