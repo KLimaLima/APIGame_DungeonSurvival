@@ -28,6 +28,8 @@ leaderboardRouter.post('/register',async(req,res)=>{
             player:req.body.player,
             password:hash
         });
+
+        let result1 = await client.db('ds_db').collection('almanac').aggregate([{$sample:{size:1}}]).toArray();
         let document = result1[0]; // get the first document from the result array
         let skills = document.skill;
 
@@ -40,7 +42,7 @@ leaderboardRouter.post('/register',async(req,res)=>{
 
         
 
-        let statPlayer= await client.db("ds_db").collection("stat").insertOne({
+        let statPlayer= await client.db("ds_db").collection("stats").insertOne({
             playerID:req.body.player,
             inventory:0,
             attack_action:10,
