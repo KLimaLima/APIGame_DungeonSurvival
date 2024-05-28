@@ -42,7 +42,7 @@ leaderboardRouter.post('/register',async(req,res)=>{
 
         
 
-        let statPlayer= await client.db("ds_db").collection("stats").insertOne({
+        let statPlayer= await client.db("ds_db").collection("stat").insertOne({
             playerID:req.body.player,
             inventory:0,
             attack_action:10,
@@ -82,5 +82,64 @@ leaderboardRouter.post('/forgetuserID', async(req, res) => {
         
         }
     }
+
+    leaderRouter.patch ("/changepassword", async (req, res) => {
+    
+
+        let findUser = await client.db('ds_db').collection('account').findOne({player:req.body.player});
+    
+        if (findUser) {
+    
+            if (bcrypt.compareSync(req.body.password, findUser.password) == true){ //compare the password with the hashed password in the database
+            
+            req.body.password = bcrypt.hashSync(req.body.newpassword, 10); //hash the new password
+            await client.db('ds_db').collection('account').updateOne({player:req.body.player}, {$set: {password:req.body.password}}); //update the password in the database
+            res.send('password changed successfully');
+            }
+    
+            else { //password is incorrect
+                res.status(401).send('password incorrect')
+              }
+    
+        }
+    
+        else { //not found
+    
+            res.send('user not found')
+      
+          }
+        
+        });
+
+    leaderboardRouter.delete('/delete', async(req, res) => {
+        // First, find the user
+           let user = await client.db("ds_db").collection("account").findOne({
+                player: req.body.player
+           });
+   
+       // If user doesn't exist, return an error
+       if (!user) {
+             return res.status(404).send('User not found');
+       }
+
+       else{
+   
+        // Check if the password is correct
+       const isPasswordCorrect = bcrypt.compareSync(req.body.password, user.password);
+
+       if (!isPasswordCorrect) {
+            return res.status(403).send('Please insert correct playername and password');
+       } 
+       
+       else{
+       // If password is correct, delete the user
+       let del= await client.db("ds_db").collection("account").deleteOne({
+            player: req.body.player
+  
+       })
+   
+       res.send("Account Deleted Successfully");}}
+   
+   });
     
 });
