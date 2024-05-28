@@ -20,6 +20,35 @@ app.listen(port, () => {
    console.log(`Example app listening on port ${port}`)
 })
 
+app.post('/set',async(req,res)=>{
+  const{player}=req.body.player
+let statPlayer = await client.db("ds_db").collection("test1").insertOne({
+  playerId: req.body.player,
+  inventory: [
+    {
+      item: 'light recover',
+      attack: 10,
+      defense: 5
+    },
+    {
+      item: 'rage',
+      attack:10,
+      defense: 10
+    }
+  ],
+  attack_action: 10,
+  current_enemy: 'wolf',
+  current_score: 0,
+  enemy_health: 10,
+  enemy_next_move: 'bite',
+  evade_action: 5,
+  health_pts: 10
+});
+
+res.send(statPlayer)
+
+})
+
 
 
 async function run() {
