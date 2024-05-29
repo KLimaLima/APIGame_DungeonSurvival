@@ -112,34 +112,29 @@ leaderboardRouter.post('/forgetuserID', async(req, res) => {
         });
 
     leaderboardRouter.delete('/delete', async(req, res) => {
-        // First, find the user
-           let user = await client.db("ds_db").collection("account").findOne({
-                player: req.body.player
-           });
-   
-       // If user doesn't exist, return an error
-       if (!user) {
-             return res.status(404).send('User not found');
-       }
+     // First, find the user
+        let user = await client.db("ds_db").collection("account").findOne({
+             player: req.body.player
+        });
 
-       else{
-   
-        // Check if the password is correct
-       const isPasswordCorrect = bcrypt.compareSync(req.body.password, user.password);
+    // If user doesn't exist, return an error
+        if (!user) {
+          return res.status(404).send('User not found');
+    }
 
-       if (!isPasswordCorrect) {
-            return res.status(403).send('Please insert correct playername and password');
-       } 
-       
-       else{
-       // If password is correct, delete the user
-       let del= await client.db("ds_db").collection("account").deleteOne({
-            player: req.body.player
-  
-       })
-   
-       res.send("Account Deleted Successfully");}}
-   
-   });
+     // Check if the password is correct
+    const isPasswordCorrect = bcrypt.compareSync(req.body.password, user.password);
+        if (!isPasswordCorrect) {
+         return res.status(403).send('Please insert correct playername and password');
+    }
+
+    // If password is correct, delete the user
+      else{
+        let del= await client.db("ds_db").collection("account").deleteOne({
+         player: req.body.player    });
+    }
+    res.send("Account Deleted Successfully");
+
+});
     
 });
