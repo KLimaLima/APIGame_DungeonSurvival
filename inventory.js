@@ -125,6 +125,7 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
   }
   const newAttackAction = Math.min(player.attack_action + potion.attack_action, 10);
   const newHealthPts = Math.min(player.health_pts + potion.health_pts, 10);
+  const evadePts= Math.min(player.evade_action + potion.evade, 5);
 
 
 
@@ -136,46 +137,53 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
       {
         $set: {
           attack_action: newAttackAction,
-          health_pts: newHealthPts
+          health_pts: newHealthPts,
+          evade_action:evadePts
         },
         $pull: { inventory: { item:item } }  // remove the used potion from inventory
       },
     );
   
   }
-  else if(player.attack_action<10 && player.health_pts>=10)
-  {
-    updatedPlayer = await db.collection("test1").updateOne(
-      { playerId:playerId },
-      {
-        $set: {
-          attack_action: newAttackAction,
-        },
-        $pull: { inventory: { item:item } }  // remove the used potion from inventory
-      },
+  // else if(player.attack_action<10 && player.health_pts>=10)
+  // {
+  //   updatedPlayer = await db.collection("test1").updateOne(
+  //     { playerId:playerId },
+  //     {
+  //       $set: {
+  //         attack_action: newAttackAction,
+  //       },
+  //       $pull: { inventory: { item:item } }  // remove the used potion from inventory
+  //     },
 
-    );
+  //   );
     
-  }
-  else if(player.attack_action>=10 && player.health_pts<10)
-  {
-    updatedPlayer = await db.collection("test1").updateOne(
-      { playerId:playerId },
-      {
-        $set: {
-          health_pts: newHealthPts
-        },
-        $pull: { inventory: { item:item} }  // remove the used potion from inventory
-      },
-    );
+  // }
+  // else if(player.attack_action>=10 && player.health_pts<10)
+  // {
+  //   updatedPlayer = await db.collection("test1").updateOne(
+  //     { playerId:playerId },
+  //     {
+  //       $set: {
+  //         health_pts: newHealthPts
+  //       },
+  //       $pull: { inventory: { item:item} }  // remove the used potion from inventory
+  //     },
+  //   );
     
-  }
+  // }
   else if(player.attack_action>=10 && player.health_pts>=10)
   {
     return res.status(400).send("The attack and health is full");
   }
 
-  res.status(202).send("Used Successfully")
+  result=await db.collection('test1').findOne({playerId})
+  if(result){
+  res.status(200).send(`Attack_Action:${result.attack_action}\nHealth_pts:${result.health_pts}`)
+  }
+  else{
+    res.status(400).send("Error")
+  }
   
   
 });
@@ -199,6 +207,8 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
 //   }
 // ]
 
+
+//using coin to buy potion
 
 
 // DELETE an item from a player's inventory
