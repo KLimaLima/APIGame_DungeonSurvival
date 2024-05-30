@@ -7,7 +7,7 @@ app.use(express.json())
 let client = require(`./database`)
 
 const almanacRoute = require(`./almanic`)
-const inventoryRoute = require(`./InvenTory`)
+const inventoryRoute = require(`./inventory`)
 
 app.use(almanacRoute)
 app.use(inventoryRoute)
@@ -21,31 +21,36 @@ app.listen(port, () => {
 })
 
 app.post('/set',async(req,res)=>{
-  const{player}=req.body.player
-let statPlayer = await client.db("ds_db").collection("test1").insertOne({
-  playerId: req.body.player,
+  const{player}=req.body
+await client.db("ds_db").collection("test1").insertOne({
+  playerId: player,
   inventory: [
     {
       item: 'light recover',
-      attack: 10,
-      defense: 5
+      attack_action: 1,
+      health_pts: 2
     },
     {
       item: 'rage',
-      attack:10,
-      defense: 10
+      attack_action:5,
+      health_pts: 10
     }
   ],
-  attack_action: 10,
+  attack_action: 5,
   current_enemy: 'wolf',
   current_score: 0,
   enemy_health: 10,
   enemy_next_move: 'bite',
   evade_action: 5,
-  health_pts: 10
+  health_pts: 5,
+  coin:100
 });
 
-res.send(statPlayer)
+
+  // Find the inserted document using the insertedId
+  let insertedPlayer = await client.db('ds_db').collection("test1").findOne({ playerId:player});
+
+  res.send(insertedPlayer);
 
 })
 
@@ -58,7 +63,12 @@ async function run() {
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
+  }catch(error)
+  {
+    console.log(error)
+  
+  }
+  finally {
     // Ensures that the client will close when you finish/error
    //  await client.close();
   }

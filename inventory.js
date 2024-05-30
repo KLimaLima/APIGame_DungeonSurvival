@@ -5,25 +5,17 @@ const client = require('./database')
 const db = client.db('ds_db');
 
 
-// app.use(express.json());
-// app.use(express.urlencoded());
-// app.use(express.static('public'));
 
-//function to determine whether the player exists
 const getPlayerById = async (playerId) => {
   if (!playerId) {
-      throw new Error("Invalid ID format");
+    throw new Error("Invalid ID format");
   }
-
-  // const client = require('./database')
-  // const db = client.db('ds_db');
   const player = await db.collection('test1').findOne({playerId});
 
 
   if (!player) {
-      throw new Error("Player not found");
+    throw new Error("Player not found");
   }
-
   return player;
 }
 
@@ -32,7 +24,12 @@ const getPlayerById = async (playerId) => {
 // GET the players
 InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
   const{playerId}=req.params;
-  const player = await getPlayerById(playerId);
+  try{
+  const player = await getPlayerById(playerId)
+  }catch (error) {
+    res.status(400).send(error.message);
+  }
+  const player=await db.collection('test1').findOne({playerId:playerId})
   if(player){
   const pipeline = [
     {
@@ -46,78 +43,75 @@ InventoryRouter.get('/api/players/:playerId/inventory', async (req, res) => {
       }
     }
   ];
-
   const playerInventory = await db.collection('test1').aggregate(pipeline).toArray();
- 
-   
-    res.status(200).json(playerInventory);
+res.status(200).json(playerInventory);
 } 
+  
 else{
   res.status(400).send("Error")
 }
+
+
 });
 
 //POST an item to a player's inventory
-InventoryRouter.post('/api/players/:playerId/inventory', async (req, res) => {
-const { playerId } = req.params;
-const item = req.body.item;
+InventoryRouter.post('/buyinventory', async (req, res) => {
+const { playerId,itembuy } = req.body;
+
 
   try {
-    const player = await getPlayerById(playerId);
-
-    const ItemAdd = await db.collection('test1').updateOne(
+     await getPlayerById(playerId);
+    const player = await db.collection('test1').findOne({playerId:playerId})
+    const itemfind=await db.collection('itemtesting').findOne({item:itembuy})
+    
+    if(itemfind){
+    if(!player.coin){
+      return res.status(404).send('You have no coins');
+    }
+    const coin=player.coin-itemfind.coin
+    if(coin>=0){
+    await db.collection('test1').updateOne(
       { playerId: playerId },
-      { $push: {inventory: 
-        {item:item,} }
+      { 
+        $push: { inventory: 
+          {
+            item: itemfind.item,
+            attack_action:itemfind.attack_action,
+            health_pts: itemfind.health
+          } },
+        $set: { coin: coin }
       }
     );
 
-    if (ItemAdd.modifiedCount === 0) {
-      throw new Error("Couldn't add item to inventory");
+    //  res.status(200).json(`Buy successfully now ${itembuy} is added in your inventory ,remain coin:${coin}`)
     }
 
-    res.status(200).json({ player, message: 'Item added to inventory' });
-  } catch (error) {
-    res.status(400).send(error.message);
+    else if(coin<0){
+      return res.status(404).send('You have insufficient coins');
+    }
+    let playerbuy=await db.collection('test1').findOne({playerId:playerId})
+    res.status(200).json({ playerbuy, message: 'Item added to inventory' });
+    }
+    //No item
+  //   else if(!itemfind)
+  //   {
+  //    return res.status(400).send("Item not found")
+  //   }
+  }
+   catch (error) {
+    console.log(error.message);
   }
 });
 
-// //add item into the inventory
-// async function addItemToPlayerInventory(playerId, item, attack, defense) {
-//   try {
-//     const player = await getPlayerById(playerId);
 
-//     const ItemAdd = await db.collection('test1').updateOne(
-//       { playerId: playerId },
-//       { $push: {inventory: 
-//         {item: item,
-//         attack: attack,
-//         defense: defense
-//          } }
-//         }
-//     );
-
-//     if (ItemAdd.modifiedCount === 0) {
-//       throw new Error("Couldn't add item to inventory");
-//     }
-
-//     return true;
-//   } catch (error) {
-//     console.error(error);
-//     return false;
-//   }
-// }
 
 InventoryRouter.patch('/usePotion', async (req, res) => {
   const { playerId, item } = req.body;
-
   // Find the player's document
   const player = await getPlayerById(playerId);
-
   if (!player) {
     return res.status(404).send('Player not found');
   }
-
   // Find the selected potion in the inventory
   const potion = player.inventory.find(p => p.item === item);
   if (!potion) {
@@ -126,9 +120,6 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
   const newAttackAction = Math.min(player.attack_action + potion.attack_action, 10);
   const newHealthPts = Math.min(player.health_pts + potion.health_pts, 10);
   const evadePts= Math.min(player.evade_action + potion.evade, 5);
-
-
-
   // Update the attack_action and health_pts field
   let updatedPlayer = null;
   if(player.attack_action<=10 && player.health_pts<=10){  
@@ -145,41 +136,13 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
     );
   
   }
-  // else if(player.attack_action<10 && player.health_pts>=10)
-  // {
-  //   updatedPlayer = await db.collection("test1").updateOne(
-  //     { playerId:playerId },
-  //     {
-  //       $set: {
-  //         attack_action: newAttackAction,
-  //       },
-  //       $pull: { inventory: { item:item } }  // remove the used potion from inventory
-  //     },
-
-  //   );
-    
-  // }
-  // else if(player.attack_action>=10 && player.health_pts<10)
-  // {
-  //   updatedPlayer = await db.collection("test1").updateOne(
-  //     { playerId:playerId },
-  //     {
-  //       $set: {
-  //         health_pts: newHealthPts
-  //       },
-  //       $pull: { inventory: { item:item} }  // remove the used potion from inventory
-  //     },
-  //   );
-    
-  // }
   else if(player.attack_action>=10 && player.health_pts>=10)
   {
     return res.status(400).send("The attack and health is full");
   }
-
   result=await db.collection('test1').findOne({playerId})
   if(result){
-  res.status(200).send(`Attack_Action:${result.attack_action}\nHealth_pts:${result.health_pts}`)
+  res.status(200).json(result)
   }
   else{
     res.status(400).send("Error")
@@ -187,33 +150,9 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
   
   
 });
-
-
-//   {
-//     '$match': {
-//       'playerId': 'new'
-//     }
-//   }, {
-//     '$unwind': {
-//       'path': '$inventory'
-//     }
-//   }, {
-//     '$lookup': {
-//       'from': 'potion', 
-//       'localField': 'inventory.item', 
-//       'foreignField': 'item', 
-//       'as': 'ndata'
-//     }
-//   }
-// ]
-
-
-//using coin to buy potion
-
-
 // DELETE an item from a player's inventory
-InventoryRouter.delete('/api/players/:playerId/inventory/:item', async (req, res) => {
-  const { playerId, item } = req.params;
+InventoryRouter.delete('/delete/inventory/', async (req, res) => {
+  const { playerId, item } = req.body;
 
   try {
     const player = await getPlayerById(playerId);
@@ -241,20 +180,6 @@ InventoryRouter.delete('/api/players/:playerId/inventory/:item', async (req, res
 
 
 
-//API start the game
 
-
-
-
-//function return the randomized almanic
-
-// function randomAlmanic(){
-
-// functioon attack
-
-
-//function health
-
-//randomized attack 
 
 
