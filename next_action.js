@@ -30,17 +30,6 @@ Action_Router.post('/action', async (req, res) => {
         return
     }
 
-    // //Validate! Check if the player exists
-    // let playerExist = await client.db('ds_db').collection('stats').findOne(
-    //     {playerId: playerId}
-    // )
-
-    // //If player does not exist, then reject
-    // if(!playerExist) {
-    //     res.send(`Could not find ${playerId}.`)
-    //     return
-    // }
-
     //Validate! Check if player already have an action
     let playerAction = await collection_action.findOne(
         { playerId: playerId }
@@ -67,13 +56,6 @@ Action_Router.post('/action', async (req, res) => {
     )
 
     let currentAction = await getActiveAction(playerId, res)
-    
-    // //just to show the action that has been inserted
-    // let currentAction = await collection_action.findOne(
-    //     {
-    //         playerId: playerId
-    //     }
-    // )
 
     res.send(`You've added an action:\n${currentAction.action}`)
 })
@@ -95,33 +77,11 @@ Action_Router.get('/action', async (req, res) => {
         return
     }
 
-    // //Validate! Check if the player exists
-    // let playerExist = await client.db('ds_db').collection('stats').findOne(
-    //     {playerId: playerId}
-    // )
-
-    // //If player does not exist, then reject
-    // if(!playerExist) {
-    //     res.send(`Could not find ${playerId}.`)
-    //     return
-    // }
-
     let playerAction = await getActiveAction(playerId, res)
 
     if(!playerAction) {
         return
     }
-
-    // let playerData = await collection_action.findOne(
-    //     {
-    //         playerId: playerId
-    //     }
-    // )
-
-    // if (!playerData) {
-    //     res.send('No active action found')
-    //     return
-    // }
 
     res.send(playerAction)
 })
@@ -138,15 +98,10 @@ Action_Router.patch('/action', async (req, res) => {
     if (!player) {
         return
     }
+    console.log(player)
 
-    //DELETE THE TEST
-    let playerAction = await collection_action.findOne(
-        { playerId: playerId }
-    )
+    
 
-    res.send(playerAction)
-
-    // console.log(player)
 })
 
 //TODO redo the code
@@ -339,33 +294,11 @@ Action_Router.delete('/action', async (req, res) => {
         return
     }
 
-    // //Validate! Check if the player exists
-    // let playerExist = await client.db('ds_db').collection('stats').findOne(
-    //     {playerId: playerId}
-    // )
-
-    // //If player does not exist, then reject
-    // if(!playerExist) {
-    //     res.send(`Could not find ${playerId}.`)
-    //     return
-    // }
-
     let playerAction = await getActiveAction(playerId, res)
 
     if(!playerAction) {
         return
     }
-
-    // //Validate! Check if player have an active action
-    // let playerAction = await collection_action.findOne(
-    //     { playerId: playerId }
-    // )
-
-    // //If there is no active action, then reject
-    // if (!playerAction) {
-    //     res.send(`No active action found`)
-    //     return
-    // }
 
     //delete the action
     let deleteAction = await collection_action.deleteOne(
