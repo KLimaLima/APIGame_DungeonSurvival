@@ -112,7 +112,13 @@ Action_Router.patch('/action', async (req, res) => {
 
         await collection_stats.updateOne(
             {playerId: deleted_action.playerId},
-            {$inc: { enemy_current_health: -2, attack_action: -1 }}
+            {
+                $inc: { 
+                    enemy_current_health: -2,
+                    attack_action: -1,
+                    health_pts: (-1 * player.enemy_next_move.damage) 
+                }
+            }
         )
 
         await update_enemy(playerId)
