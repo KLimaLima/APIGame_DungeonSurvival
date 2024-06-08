@@ -7,8 +7,11 @@ const bcrypt = require('bcrypt')
 let client = require(`./database.js`)
 let ds_db = client.db('ds_db')
 let collection_action = ds_db.collection('action')
+let collection_stats = ds_db.collection('stats')
 
-let { getPlayerData } = require(`./valid.js`)
+let { getPlayerStats } = require(`./valid.js`)
+
+let { update_enemy } = require(`./update_enemy.js`)
 
 //FINISH
 Action_Router.post('/action', async (req, res) => {
@@ -23,7 +26,7 @@ Action_Router.post('/action', async (req, res) => {
     }
 
     //get player data
-    let player = await getPlayerData(playerId, res)
+    let player = await getPlayerStats(playerId, res)
 
     //reject if no player data
     if (!player) {
@@ -71,7 +74,7 @@ Action_Router.get('/action', async (req, res) => {
         return
     }
 
-    let player = await getPlayerData(playerId, res)
+    let player = await getPlayerStats(playerId, res)
 
     if (!player) {
         return
@@ -79,7 +82,7 @@ Action_Router.get('/action', async (req, res) => {
 
     let playerAction = await getActiveAction(playerId, res)
 
-    if(!playerAction) {
+    if (!playerAction) {
         return
     }
 
@@ -92,15 +95,40 @@ Action_Router.patch('/action', async (req, res) => {
     let playerId = req.body.playerId
 
     //get player data
-    let player = await getPlayerData(playerId, res)
+    let player = await getPlayerStats(playerId, res)
 
     //reject if no player data
     if (!player) {
         return
     }
-    console.log(player)
+    //console.log(player)
 
-    
+    // let active_action = await getActiveAction(playerId, res)
+
+    // if (!active_action) {
+    //     return
+    // }
+
+    let deleted_action = await deleteAction(playerId, res)
+
+    if(!deleted_action) {
+        return      //function already res message
+    }
+
+    if (deleted_action.action == "attack") {
+
+        await collection_stats.updateOne(
+            {playerId: deleted_action.playerId},
+            {$inc: { enemy_current_health: -2, attack_action: -1 }}
+        )
+
+        await update_enemy(playerId)
+
+    } else if (deleted_action.action == "evade") {
+
+    } else if (deleted_action.action == "defend") {
+
+    } else { res.send('Unable to do action') }
 
 })
 
@@ -288,26 +316,21 @@ Action_Router.delete('/action', async (req, res) => {
         return
     }
 
-    let player = await getPlayerData(playerId, res)
+    //find player in stats
+    let player = await getPlayerStats(playerId, res)
 
     if (!player) {
         return
     }
 
-    let playerAction = await getActiveAction(playerId, res)
+    //delete player's action
+    let deleted_action = await deleteAction(playerId, res)
 
-    if(!playerAction) {
-        return
+    //send message; must do this because the function could be sending res when not found player action
+    if(deleted_action) {
+        console.log(deleted_action)
+        res.send(`You've deleted your active action`)
     }
-
-    //delete the action
-    let deleteAction = await collection_action.deleteOne(
-        {
-            playerId: playerId,
-        }
-    )
-
-    res.send(`You've deleted your active action`)
 })
 
 async function getActiveAction(playerId, res) {
@@ -324,6 +347,23 @@ async function getActiveAction(playerId, res) {
     }
 
     return playerAction
+}
+
+async function deleteAction(playerId, res) {
+
+    let active_action = await getActiveAction(playerId, res)
+
+    if(!active_action) {
+        return false
+    }
+
+    let deleteAction = await collection_action.deleteOne(
+        {
+            _id: active_action._id
+        }
+    )
+
+    return active_action
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2,9 +2,9 @@
 
 let client = require(`./database.js`)
 
-module.exports = { getPlayerData }
+module.exports = { getPlayerStats }
 
-async function getPlayerData(playerId, res) {
+async function getPlayerStats(playerId, res) {
 
     //Validate! Check if the player exists
     let player = await client.db('ds_db').collection('stats').findOne(
