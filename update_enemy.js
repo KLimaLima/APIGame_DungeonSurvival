@@ -20,7 +20,7 @@ async function randomise_enemy() {
 async function randomise_enemy_skill(enemy_name) {
 
     let enemy_current = await collection_almanac.findOne(
-        { enemy: enemy_name.current_enemy }
+        { enemy: enemy_name }
     )
 
     let randomEnemySkillIndex = Math.floor(Math.random() * enemy_current.skill.length)
@@ -44,7 +44,7 @@ async function update_enemy (playerId) {
     let enemy_name
     let enemy_health
 
-    if(current_enemy.enemy_current_health <= 2) {
+    if(current_enemy.enemy_current_health <= 0) {
 
         current_enemy = await randomise_enemy()
         enemy_name = current_enemy.enemy
@@ -54,7 +54,7 @@ async function update_enemy (playerId) {
         enemy_health = current_enemy.enemy_current_health
     }
 
-    let enemy_skill = await randomise_enemy_skill(current_enemy)
+    let enemy_skill = await randomise_enemy_skill(enemy_name)
 
     let new_enemy = await collection_stats.updateOne(
         { playerId: playerId },

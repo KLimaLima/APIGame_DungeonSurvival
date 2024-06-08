@@ -101,13 +101,6 @@ Action_Router.patch('/action', async (req, res) => {
     if (!player) {
         return
     }
-    //console.log(player)
-
-    // let active_action = await getActiveAction(playerId, res)
-
-    // if (!active_action) {
-    //     return
-    // }
 
     let deleted_action = await deleteAction(playerId, res)
 
@@ -123,6 +116,12 @@ Action_Router.patch('/action', async (req, res) => {
         )
 
         await update_enemy(playerId)
+
+        let latest_stats = await collection_stats.findOne(
+            { playerId: playerId }
+        )
+
+        res.send(`Player Health: ${latest_stats.health_pts}\nEnemy Health: ${latest_stats.enemy_current_health}\nEnemy Next Action: ${latest_stats.enemy_next_move.attack_name}`)
 
     } else if (deleted_action.action == "evade") {
 
