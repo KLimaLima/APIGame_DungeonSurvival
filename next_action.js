@@ -104,36 +104,84 @@ Action_Router.patch('/action', async (req, res) => {
 
     let deleted_action = await deleteAction(playerId, res)
 
-    if(!deleted_action) {
+    if (!deleted_action) {
         return      //function already res message
     }
 
-    if (deleted_action.action == "attack") {
+    if (deleted_action.action == "attack" && player.attack_action > 0) {
 
         await collection_stats.updateOne(
-            {playerId: deleted_action.playerId},
+            { playerId: deleted_action.playerId },
             {
-                $inc: { 
+                $inc: {
                     enemy_current_health: -2,
                     attack_action: -1,
-                    health_pts: (-1 * player.enemy_next_move.damage) 
+                    health_pts: (-1 * player.enemy_next_move.damage)
                 }
             }
         )
 
+        //Process player health = 0 AND DELETE STATS
+        let isAlive = await isPlayerAlive(playerId, res)
+        if (!isAlive) {
+
+            let deletePlayer = await collection_stats.deleteOne(
+                { playerId: playerId }
+            )
+            return
+        }
+
+        //process enemy setup if not dead
         await update_enemy(playerId)
 
+        //just to show data to player
         let latest_stats = await collection_stats.findOne(
             { playerId: playerId }
         )
-
         res.send(`Player Health: ${latest_stats.health_pts}\nEnemy Health: ${latest_stats.enemy_current_health}\nEnemy Next Action: ${latest_stats.enemy_next_move.attack_name}`)
 
-    } else if (deleted_action.action == "evade") {
+    } else if (deleted_action.action == "evade" && player.evade_action > 0) {
+
+        await collection_stats.updateOne(
+            { playerId: deleted_action.playerId },
+            { $inc: { evade_action: -1 } }
+        )
+
+        //since evade, player will not get hit and enemy will change move; enemy also do not receive any damage
+        res.send(`You evaded the enemy's ${player.enemy_next_move.attack_name}`)
+
+        //process enemy setup
+        await update_enemy(playerId)
 
     } else if (deleted_action.action == "defend") {
 
-    } else { res.send('Unable to do action') }
+        // Calculate half damage, rounding up if necessary
+        let half_damage = Math.ceil(player.enemy_next_move.damage / 2);
+        let result = await collection_stats.updateOne(
+            { playerId: player.playerId },
+            { $inc: { health_pts: -half_damage } }
+        )
+
+        //Process if player health = 0 AND DELETE STATS
+        let isAlive = await isPlayerAlive(playerId, res)
+        if (!isAlive) {
+
+            let deletePlayer = await collection_stats.deleteOne(
+                { playerId: playerId }
+            )
+        }
+
+        //enemy setup
+        await update_enemy(playerId)
+
+        //just to show player data
+        let latest_stats = await collection_stats.findOne(
+            { playerId: playerId }
+        )
+        res.send(`Player Health: ${latest_stats.health_pts}\nEnemy Health: ${latest_stats.enemy_current_health}\nEnemy Next Action: ${latest_stats.enemy_next_move.attack_name}`)
+
+
+    } else { res.send('Unable to do action,\nYou can choose "attack", "evade" and "defend"\nYou need enough action points to use "attack" and "evade"') }
 
 })
 
@@ -332,7 +380,7 @@ Action_Router.delete('/action', async (req, res) => {
     let deleted_action = await deleteAction(playerId, res)
 
     //send message; must do this because the function could be sending res when not found player action
-    if(deleted_action) {
+    if (deleted_action) {
         console.log(deleted_action)
         res.send(`You've deleted your active action`)
     }
@@ -358,7 +406,7 @@ async function deleteAction(playerId, res) {
 
     let active_action = await getActiveAction(playerId, res)
 
-    if(!active_action) {
+    if (!active_action) {
         return false
     }
 
@@ -369,6 +417,20 @@ async function deleteAction(playerId, res) {
     )
 
     return active_action
+}
+
+async function isPlayerAlive(playerId, res) {
+
+    let player = await collection_stats.findOne(
+        { playerId: playerId }
+    )
+
+    if (player.health_pts <= 0) {
+        res.send("You Died")
+    }
+
+    return player.health_pts > 0
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
