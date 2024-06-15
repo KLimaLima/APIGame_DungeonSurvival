@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const express = require('express');
-const leaderboardRouter=express.Router();
-module.exports=leaderboardRouter;
+const registrationRouter=express.Router();
+module.exports=registrationRouter;
 const client = new MongoClient(uri);
 var jwt = require('jsonwebtoken');
 const { ObjectId } = require('mongodb');
@@ -39,7 +39,7 @@ client.connect()
 
 
 
-leaderboardRouter.post('/account/login',async(req,res) => { 
+registrationRouter.post('/account/login',async(req,res) => { 
     // step #1:req.body.username
       let result = await client.db("ds_db").collection("account").findOne({
         player: req.body.player
@@ -77,7 +77,7 @@ leaderboardRouter.post('/account/login',async(req,res) => {
   
   
   
-  leaderboardRouter.get('/account/:id',verifyToken, async(req, res) => {
+  registrationRouter.get('/account/:id',verifyToken, async(req, res) => {
     if (req.authData._id != req.params.id) {
       res.send('User is not authorized')
     
@@ -109,7 +109,7 @@ leaderboardRouter.post('/account/login',async(req,res) => {
 
 // Get the leaderboard
 
-leaderboardRouter.get('/leaderboard', async(req, res) => {
+registrationRouter.get('/leaderboard', async(req, res) => {
     let LatestLB = await client.db("da_db").collection("account")
         .find()
         .sort({ score: -1 }) // Sort by score in descending order
@@ -125,7 +125,7 @@ leaderboardRouter.get('/leaderboard', async(req, res) => {
 
 
 
-leaderboardRouter.post('/account/register',async(req,res)=>{
+registrationRouter.post('/account/register',async(req,res)=>{
     let Exists= await client.db("ds_db").collection("account").findOne({
         player:req.body.player
     });
@@ -174,7 +174,7 @@ leaderboardRouter.post('/account/register',async(req,res)=>{
 
 //forget userid
 
-leaderboardRouter.post('/account/forgetuserID', async(req, res) => {
+registrationRouter.post('/account/forgetuserID', async(req, res) => {
     let result = await client.db("ds_db").collection("account").findOne({
       player: req.body.player
         
@@ -205,7 +205,7 @@ leaderboardRouter.post('/account/forgetuserID', async(req, res) => {
 
 
 //update or change password for current account
-leaderboardRouter.patch ("/account/changepassword" ,async (req, res) => {
+registrationRouter.patch ("/account/changepassword" ,async (req, res) => {
     if (!req.body.newpassword) {
       return res.status(400).send('New password is required');
   }
@@ -237,7 +237,7 @@ leaderboardRouter.patch ("/account/changepassword" ,async (req, res) => {
 
 
 //delete current account
-leaderboardRouter.delete('/account/delete/:id',verifyToken, async(req, res) => {
+registrationRouter.delete('/account/delete/:id',verifyToken, async(req, res) => {
         if(req.authData._id != req.params.id){
           res.send('User is not authorized')
         }
