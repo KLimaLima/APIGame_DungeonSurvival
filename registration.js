@@ -110,7 +110,7 @@ registrationRouter.post('/account/login',async(req,res) => {
 // Get the leaderboard
 
 registrationRouter.get('/leaderboard', async(req, res) => {
-    let LatestLB = await client.db("da_db").collection("account")
+    let LatestLB = await client.db("ds_db").collection("account")
         .find()
         .sort({ score: -1 }) // Sort by score in descending order
         .toArray();
@@ -152,7 +152,7 @@ registrationRouter.post('/account/register',async(req,res)=>{
 
       
 
-      let statPlayer= await client.db("ds_db").collection("stat").insertOne({
+      let statPlayer= await client.db("ds_db").collection("stats").insertOne({
           playerID:req.body.player,
           inventory:0,
           attacl_action:10,
