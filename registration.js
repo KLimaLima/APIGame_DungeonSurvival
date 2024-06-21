@@ -217,39 +217,39 @@ registrationRouter.post('/account/forgetuserID', async(req, res) => {
         
         }
     }
-    
+    Z
 });
 
 
 //update or change password for current account
 registrationRouter.patch ("/account/changepassword" ,async (req, res) => {
+
+  if(!req.body.player || !req.body.password){
+    res.status(404).send('Please provide username and password')
+    return
+  }
+
     if (!req.body.newpassword) {
       return res.status(400).send('New password is required');
   }
 
     let findUser = await client.db('ds_db').collection('account').findOne({player:req.body.player});
 
-    if (findUser) {
+    if(!findUser) {
+      res.send('user not found')
+      return
+    }
 
         if (bcrypt.compareSync(req.body.password, findUser.password) == true){ //compare the password with the hashed password in the database
         
         req.body.password = bcrypt.hashSync(req.body.newpassword, 10); //hash the new password
         await client.db('ds_db').collection('account').updateOne({player:req.body.player}, {$set: {password:req.body.password}}); //update the password in the database
         res.send('password changed successfully');
-        }
-
+        } 
         else { //password is incorrect
             res.status(401).send('password incorrect')
           }
 
-    }
-
-    else { //not found
-
-        res.send('user not found')
-  
-      }
-    
     });
 
 
