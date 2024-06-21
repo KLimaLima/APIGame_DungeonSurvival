@@ -117,7 +117,7 @@ registrationRouter.post('/account/login',async(req,res) => {
 // Get the leaderboard
 
 registrationRouter.get('/leaderboard', async(req, res) => {
-    let LatestLB = await client.db("ds_db").collection("account")
+    let LatestLB = await client.db("ds_db").collection("leaderboard")
         .find()
         .sort({ score: -1 }) // Sort by score in descending order
         .toArray();
@@ -133,6 +133,12 @@ registrationRouter.get('/leaderboard', async(req, res) => {
 
 
 registrationRouter.post('/account/register',async(req,res)=>{
+
+  if(!req.body.player || !req.body.password){
+    res.status(404).send('Please provide username and password')
+    return
+  }
+
     let Exists= await client.db("ds_db").collection("account").findOne({
         player:req.body.player
     });
@@ -157,7 +163,7 @@ registrationRouter.post('/account/register',async(req,res)=>{
       // Get a random skill
       // let randomSkill = skills[randomIndex];
       
-      let the_enemy_skill = randomise_enemy_skill(document.enemy)
+      let the_enemy_skill = await randomise_enemy_skill(document.enemy)
 
       let statPlayer= await client.db("ds_db").collection("stats").insertOne({
           playerId:req.body.player,
@@ -178,7 +184,7 @@ registrationRouter.post('/account/register',async(req,res)=>{
       { player: req.body.player }
      )
 
-    res.send(`Account created successfully\nid: ${give_id._id}\nplease remember your id!`);
+    res.send(`Account created successfully\nuser id: ${give_id._id}\nplease remember your user id!`);
     
 })
 
