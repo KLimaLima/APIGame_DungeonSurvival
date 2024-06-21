@@ -172,10 +172,13 @@ registrationRouter.post('/account/register',async(req,res)=>{
           enemy_next_move:the_enemy_skill,
     
      })
-    
     }
     
-    res.send("Account created successfully, please remember your player id");
+    let give_id = await client.db('ds_db').collection('account').findOne(
+      { player: req.body.player }
+     )
+
+    res.send(`Account created successfully\nid: ${give_id._id}\nplease remember your id!`);
     
 })
 
