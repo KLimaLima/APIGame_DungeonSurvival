@@ -2,7 +2,7 @@ let client = require(`./database.js`)
 let collection_almanac = client.db('ds_db').collection('almanac')
 let collection_stats = client.db('ds_db').collection('stats')
 
-module.exports = { update_enemy }
+module.exports = { update_enemy, randomise_enemy_skill }
 
 async function randomise_enemy() {
 
