@@ -52,6 +52,7 @@ registrationRouter.post('/account/login',async(req,res) => {
     console.log(req.body);
     if(!req.body.player || !req.body.password){
       res.status(404).send('Please provide username and password')
+      return
     }
     else if(req.body.player != null && req.body.password != null){
     
@@ -250,6 +251,11 @@ registrationRouter.delete('/account/delete/:id',verifyToken, async(req, res) => 
     { _id: new ObjectId(req.params.id) }
   )
 
+  if(!req.body.password || !req.body.player) {
+    res.send('Not enough data\nPlease provide the player and password')
+    return
+  }
+
   if(req.authData._id != req.params.id){
           res.send('User is not authorized')
           return
@@ -257,7 +263,12 @@ registrationRouter.delete('/account/delete/:id',verifyToken, async(req, res) => 
         else if(!player){
           res.send(`Could not find player`)
           return
-        } else{
+        }
+        else if(bcrypt.compareSync(req.body.password,player.password)==false){
+          res.send('Incorrect password')
+          return
+        }
+        else{
 
         let result= await client.db("ds_db").collection("account").deleteOne({
             _id: new ObjectId(req.params.id)
