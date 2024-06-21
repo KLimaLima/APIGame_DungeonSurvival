@@ -32,6 +32,7 @@ InventoryRouter.get('/players/inventory', async (req, res) => {
   }catch (error) {
     res.status(400).send(error.message);
   }
+
   const player=await db.collection('stats').findOne({playerId:playerId})
   if(player){
   const pipeline = [
@@ -155,6 +156,7 @@ InventoryRouter.patch('/usePotion', async (req, res) => {
   }
   else{
     res.status(400).send("Error")
+
   }
   
   
@@ -201,6 +203,4 @@ InventoryRouter.get('/inventory', async (req, res) => {
     res.status(500).send('An error occurred');
   }
   
-
-
 });
