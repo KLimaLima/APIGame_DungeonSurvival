@@ -47,6 +47,7 @@ GET - /action
 PATCH - /action
 DELETE - /action
 GET - /stats
+GET - /wiki
 GET - /leaderboard`
 
 app.use((req, res) => {
