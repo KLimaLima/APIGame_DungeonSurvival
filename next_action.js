@@ -64,7 +64,7 @@ Action_Router.post('/action', compareToken, async (req, res) => {
 })
 
 //FINISH
-Action_Router.get('/action', async (req, res) => {
+Action_Router.get('/action', compareToken, async (req, res) => {
 
     let playerId = req.body.playerId
 
@@ -90,7 +90,7 @@ Action_Router.get('/action', async (req, res) => {
 })
 
 //FINISH
-Action_Router.patch('/action', async (req, res) => {
+Action_Router.patch('/action', compareToken, async (req, res) => {
 
     let playerId = req.body.playerId
 
@@ -179,7 +179,7 @@ Action_Router.patch('/action', async (req, res) => {
 })
 
 //FINISH
-Action_Router.delete('/action', async (req, res) => {
+Action_Router.delete('/action', compareToken, async (req, res) => {
 
     let playerId = req.body.playerId
 
