@@ -143,8 +143,13 @@ Action_Router.patch('/action', compareToken, async (req, res) => {
             { $inc: { evade_action: -1 } }
         )
 
+        //just to show player data
+        let latest_stats = await collection_stats.findOne(
+            { playerId: playerId }
+        )
+
         //since evade, player will not get hit and enemy will change move; enemy also do not receive any damage
-        res.send(`You evaded the enemy's ${player.enemy_next_move.attack_name}`)
+        res.send(`You evaded the enemy's ${player.enemy_next_move.attack_name}\nPlayer Health: ${latest_stats.health_pts}\nEnemy Health: ${latest_stats.enemy_current_health}\nEnemy Next Action: ${latest_stats.enemy_next_move.attack_name}\nEnemy Next Action Damage: ${latest_stats.enemy_next_move.damage}`)
 
         //process enemy setup
         await update_enemy(playerId)
